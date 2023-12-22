@@ -11,7 +11,6 @@ interface Option {
 
 function App() {
 	const [selectedOption, setSelectedOption] = useState('');
-	// const [data, setData] = useState<any>(null);
 
 	const options: Option[] = [
 		{ value: 'location', label: 'location' },
@@ -22,15 +21,15 @@ function App() {
 		setSelectedOption(event.target.value);
 	};
 
-	const [data, setData] = useState([]); // Используем хук useState для создания состояния data
-	const [dataInfo, setDataInfo] = useState([]); // Используем хук useState для создания состояния data
+	const [data, setData] = useState([]);
+	const [dataInfo, setDataInfo] = useState();
 
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
 				const response = await axios.get(`https://rickandmortyapi.com/api/${selectedOption}`);
 				setData(response.data.results);
-				setDataInfo(response.data);
+				setDataInfo(response.data.info);
 			} catch (error) {
 				// Обработка ошибок
 			}
@@ -40,9 +39,6 @@ function App() {
 			fetchData();
 		}
 	}, [selectedOption]);
-
-	console.log("dataInfo", dataInfo);
-	console.log("data", data);
 
 	return (
 		<div className='container'>
@@ -58,7 +54,7 @@ function App() {
 			</header>
 			<main>
 				<section>
-					{data && <Table data={data} />}
+					{data && <Table data={data} info={dataInfo} />}
 				</section>
 			</main>
 		</div>

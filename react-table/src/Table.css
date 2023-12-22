@@ -1,26 +1,53 @@
-.table-container {
-	margin: 20px;
-}
-
 table {
-	width: 100%;
+	table-layout: fixed;
 	border-collapse: collapse;
+	width: 1440px;
+	height: 64px;
+	flex-shrink: 0;
 }
 
-th,
 td {
-	border: 1px solid #dddddd;
-	padding: 8px;
 	text-align: left;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	font-family: 'Inter', sans-serif;
+	font-size: 14px;
+	font-style: normal;
+	font-weight: 500;
+	line-height: 20px;
+	letter-spacing: 0.28px;
+	height: 64px;
+	padding: 0 20px;
+}
+tr:nth-child(2n-1) {
+	background: var(--gray);
 }
 
 th {
-	background-color: #f2f2f2;
+	font-family: 'Inter', sans-serif;
+	font-size: 11px;
+	font-style: normal;
+	font-weight: 600;
+	line-height: 16px;
+	letter-spacing: 0.44px;
+	text-transform: uppercase;
+	background-color: var(--gray);
 	cursor: pointer;
+	text-align: left;
+	padding: 0 20px;
+
 }
 
 .pagination {
 	margin-top: 10px;
+	font-family: 'Inter', sans-serif;
+	display: flex;
+	justify-content: space-between;
+}
+
+.pagination select{
+	margin-right: 20px;
 }
 
 button {

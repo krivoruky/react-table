@@ -1,16 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import './Table.css';
 
-interface TableProps {
-	data: any[];
-}
+type Data = {
+	[key: string]: string | number;
+};
 
-const TableComponent: React.FC<TableProps> = ({ data }) => {
+type DataInfo = {
+	count: number;
+	next: string;
+	pages: number;
+	prev: null | string;
+};
+
+type TableProps = {
+	data: Data[];
+	info: DataInfo | undefined;
+};
+
+const Table: React.FC<TableProps> = ({ data, info }) => {
 	const [currentPage, setCurrentPage] = useState(1);
-	const [rowsPerPage] = useState(15); // Количество строк на странице
+	const [itemsPerPage, setItemsPerPage] = useState(15);
 	const [sortConfig, setSortConfig] = useState<{ key: string, direction: string }>({ key: '', direction: '' });
 
-	// Функция для сортировки данных
-	const sortData = (key: string) => {
+	const headers = data.length > 0 ? Object.keys(data[0]) : [];
+
+	const indexOfLastItem = currentPage * itemsPerPage;
+	const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+	const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
+
+	const handleSort = (key: string) => {
 		let direction = 'ascending';
 		if (sortConfig.key === key && sortConfig.direction === 'ascending') {
 			direction = 'descending';
@@ -18,7 +36,20 @@ const TableComponent: React.FC<TableProps> = ({ data }) => {
 		setSortConfig({ key, direction });
 	};
 
-	// Получение отсортированных данных
+	useEffect(() => {
+		if (sortConfig !== null) {
+			currentItems.sort((a, b) => {
+				if (a[sortConfig.key] < b[sortConfig.key]) {
+					return sortConfig.direction === 'ascending' ? -1 : 1;
+				}
+				if (a[sortConfig.key] > b[sortConfig.key]) {
+					return sortConfig.direction === 'ascending' ? 1 : -1;
+				}
+				return 0;
+			});
+		}
+	}, [sortConfig, currentItems]);
+
 	const sortedData = [...data].sort((a, b) => {
 		if (sortConfig.direction === 'ascending') {
 			return a[sortConfig.key] > b[sortConfig.key] ? 1 : -1;
@@ -29,40 +60,73 @@ const TableComponent: React.FC<TableProps> = ({ data }) => {
 		return 0;
 	});
 
-	// Вычисление индексов начала и конца отображаемых строк
-	const indexOfLastRow = currentPage * rowsPerPage;
-	const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-	const currentRows = sortedData.slice(indexOfFirstRow, indexOfLastRow);
-
 	return (
-		<div>
+		<div className="table-container">
 			<table>
 				<thead>
 					<tr>
-						<th onClick={() => sortData('id')}>ID</th>
-						<th onClick={() => sortData('name')}>Name</th>
-						<th onClick={() => sortData('age')}>Age</th>
+						{headers.map((header) => (
+							<th key={header} onClick={() => handleSort(header)}>
+								{header}
+							</th>
+						))}
 					</tr>
 				</thead>
 				<tbody>
-					{currentRows.map((row) => (
-						<tr key={row.id}>
-							<td>{row.id}</td>
-							<td>{row.name}</td>
-							<td>{row.age}</td>
+					{currentItems.map((item, index) => (
+						<tr key={index}>
+							{headers.map((header) => (
+								<td key={header}>
+									{typeof item[header] === 'object'
+										? JSON.stringify(item[header])
+										: item[header]}
+								</td>
+							))}
 						</tr>
 					))}
 				</tbody>
 			</table>
-
-			{/* Пагинация */}
-			<div>
-				<button onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>Previous</button>
-				<span>{currentPage}</span>
-				<button onClick={() => setCurrentPage(currentPage + 1)} disabled={indexOfLastRow >= sortedData.length}>Next</button>
+			<div className="pagination">
+				<div>
+					{
+						info?.count
+							? `${(indexOfFirstItem + 1)} - ${indexOfLastItem} of ${info?.count}`
+							: null
+					}
+				</div>
+				<div>
+					{
+						info?.pages
+							? <>
+								<span>
+									Rows per page:
+								</span>
+								<select
+									value={itemsPerPage}
+									onChange={(e) => setItemsPerPage(parseInt(e.target.value, 10))}
+								>
+									<option value={10}>10</option>
+									<option value={15}>15</option>
+									<option value={20}>20</option>
+								</select>
+								<button
+									onClick={() => setCurrentPage(currentPage - 1)}
+									disabled={currentPage === 1}>
+									{'<'}
+								</button>
+								<span>{`${currentPage} / ${info?.pages}`}</span>
+								<button
+									onClick={() => setCurrentPage(currentPage + 1)}
+									disabled={indexOfLastItem >= sortedData.length}>
+									{'>'}
+								</button>
+							</>
+							: null
+					}
+				</div>
 			</div>
 		</div>
 	);
 };
 
-export default TableComponent;
+export default Table;

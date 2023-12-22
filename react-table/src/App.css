@@ -1,3 +1,12 @@
+:root {
+	--header: #F4F7FCBF;
+	--gray: #F9FAFC;
+	--gray500: #687182;
+	--gray700: #464F60;
+	--gray900: #171C26;
+	--green0: #E1FCEF;
+}
+
 * {
 	margin: 0;
 	padding: 0;
@@ -7,4 +16,9 @@
 .container {
 	margin: 0 auto;
 	max-width: 1440px;
+	border-radius: 10px;
+}
+.container header {
+	background-color: var(--header);
+	height: 104px;
 }
