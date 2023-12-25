@@ -30,6 +30,8 @@ function App() {
 				const response = await axios.get(`https://rickandmortyapi.com/api/${selectedOption}`);
 				setData(response.data.results);
 				setDataInfo(response.data.info);
+				console.log(response.data,"response.data");
+				
 			} catch (error) {
 				// Обработка ошибок
 			}

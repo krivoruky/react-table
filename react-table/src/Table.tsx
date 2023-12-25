@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './Table.css';
 
 type Data = {
@@ -26,7 +26,6 @@ const Table: React.FC<TableProps> = ({ data, info }) => {
 
 	const indexOfLastItem = currentPage * itemsPerPage;
 	const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-	const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
 
 	const handleSort = (key: string) => {
 		let direction = 'ascending';
@@ -36,21 +35,7 @@ const Table: React.FC<TableProps> = ({ data, info }) => {
 		setSortConfig({ key, direction });
 	};
 
-	useEffect(() => {
-		if (sortConfig !== null) {
-			currentItems.sort((a, b) => {
-				if (a[sortConfig.key] < b[sortConfig.key]) {
-					return sortConfig.direction === 'ascending' ? -1 : 1;
-				}
-				if (a[sortConfig.key] > b[sortConfig.key]) {
-					return sortConfig.direction === 'ascending' ? 1 : -1;
-				}
-				return 0;
-			});
-		}
-	}, [sortConfig, currentItems]);
-
-	const sortedData = [...data].sort((a, b) => {
+	const sortedData = [...data.slice(indexOfFirstItem, indexOfLastItem)].sort((a, b) => {
 		if (sortConfig.direction === 'ascending') {
 			return a[sortConfig.key] > b[sortConfig.key] ? 1 : -1;
 		}
@@ -73,7 +58,7 @@ const Table: React.FC<TableProps> = ({ data, info }) => {
 					</tr>
 				</thead>
 				<tbody>
-					{currentItems.map((item, index) => (
+					{sortedData.map((item, index) => (
 						<tr key={index}>
 							{headers.map((header) => (
 								<td key={header}>
@@ -117,7 +102,7 @@ const Table: React.FC<TableProps> = ({ data, info }) => {
 								<span>{`${currentPage} / ${info?.pages}`}</span>
 								<button
 									onClick={() => setCurrentPage(currentPage + 1)}
-									disabled={indexOfLastItem >= sortedData.length}>
+									disabled={currentPage >= info?.pages}>
 									{'>'}
 								</button>
 							</>
