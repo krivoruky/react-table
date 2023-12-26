@@ -1,12 +1,15 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { RootState } from './store';
+import { RootState } from './index';
 import axios from 'axios';
 
 interface Location {
+    id: number;
     name: string;
     type: string;
     dimension: string;
-    // Другие поля
+    residents: [];
+    url: string;
+    created: string;
 }
 
 interface Info {
@@ -45,8 +48,8 @@ const initialState: TableState = {
     error: null,
 };
 
-export const fetchLocations = createAsyncThunk('locations/fetchLocations', async (page: string) => {
-    const response = await axios.get(page || 'https://rickandmortyapi.com/api/location');
+export const fetchLocations = createAsyncThunk('locations/fetchLocations', async () => {
+    const response = await axios.get('https://rickandmortyapi.com/api/location');
     return response.data;
 });
 
@@ -75,9 +78,9 @@ const locationSlice = createSlice({
     },
 });
 
-export const selectLocations = (state: RootState) => state.locations.locations;
+export const selectTableDataLocations = (state: RootState) => state.locations.tableData;
+export const selectLocationsPagination = (state: RootState) => state.locations.pagination;
 export const selectLocationsLoading = (state: RootState) => state.locations.loading;
 export const selectLocationsError = (state: RootState) => state.locations.error;
-export const tableSliceReducer = (state: RootState) => state.locations.error;
 
 export default locationSlice.reducer;

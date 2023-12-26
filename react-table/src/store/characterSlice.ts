@@ -1,50 +1,90 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { RootState } from './store';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { RootState } from './index';
 import axios from 'axios';
-
-interface Location {
-    // определите тип данных для локаций
+interface Character {
+    id: number;
+    name: string;
+    status: string;
+    species: string;
+    type: string;
+    gender: string;
+    origin: object;
+    location: object;
+    image: string;
+    episode: [];
+    url: string;
+    created: string;
 }
 
-interface LocationState {
-    locations: Location[];
+interface Info {
+    count: number;
+    pages: number;
+    next: string | null;
+    prev: string | null;
+}
+
+interface ApiResponse {
+    info: Info;
+    results: Character[];
+}
+
+interface TableState {
+    tableData: Character[];
+    pagination: {
+        currentPage: number;
+        totalPages: number;
+        nextPage: string | null;
+        prevPage: string | null;
+    };
     loading: boolean;
     error: string | null;
 }
 
-const initialState: LocationState = {
-    locations: [],
+const initialState: TableState = {
+    tableData: [],
+    pagination: {
+        currentPage: 1,
+        totalPages: 1,
+        nextPage: null,
+        prevPage: null,
+    },
     loading: false,
     error: null,
 };
 
-export const fetchLocations = createAsyncThunk('locations/fetchLocations', async () => {
-    const response = await axios.get('https://rickandmortyapi.com/api/location');
+export const fetchCharacter = createAsyncThunk('locations/fetchCharacter', async () => {
+    const response = await axios.get('https://rickandmortyapi.com/api/character');
     return response.data;
 });
 
-const locationSlice = createSlice({
-    name: 'locations',
+const сharacterSlice = createSlice({
+    name: 'character',
     initialState,
     reducers: {},
     extraReducers: (builder) => {
         builder
-            .addCase(fetchLocations.pending, (state) => {
+            .addCase(fetchCharacter.pending, (state) => {
                 state.loading = true;
+                state.error = null;
             })
-            .addCase(fetchLocations.fulfilled, (state, action) => {
+            .addCase(fetchCharacter.fulfilled, (state, action: PayloadAction<ApiResponse>) => {
+                state.tableData = [...state.tableData, ...action.payload.results];
+                state.pagination.currentPage += 1;
+                state.pagination.totalPages = action.payload.info.pages;
+                state.pagination.nextPage = action.payload.info.next;
+                state.pagination.prevPage = action.payload.info.prev;
                 state.loading = false;
-                state.locations = action.payload;
             })
-            .addCase(fetchLocations.rejected, (state, action) => {
+            .addCase(fetchCharacter.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.error.message ?? 'Failed to fetch locations';
+                state.error = action.error.message || 'Failed to fetch data';
             });
     },
 });
 
-export const selectLocations = (state: RootState) => state.locations.locations;
+export const selectTableDataLocations = (state: RootState) => state.locations.tableData;
+export const selectLocationsPagination = (state: RootState) => state.locations.pagination;
 export const selectLocationsLoading = (state: RootState) => state.locations.loading;
 export const selectLocationsError = (state: RootState) => state.locations.error;
 
-export default locationSlice.reducer;
+export default сharacterSlice.reducer;
