@@ -1,28 +1,32 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './Table.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch } from './store';
+import {
+	fetchCharacter,
+	selectCharactersError,
+	selectCharactersLoading,
+	selectCharactersPagination,
+	selectTableDataCharacters
+} from './store/characterSlice';
 
-type Data = {
-	[key: string]: string | number;
-};
-
-type DataInfo = {
-	count: number;
-	next: string;
-	pages: number;
-	prev: null | string;
-};
-
-type TableProps = {
-	data: Data[];
-	info: DataInfo | undefined;
-};
-
-const Table: React.FC<TableProps> = ({ data, info }) => {
+const CharacterTable: React.FC = () => {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [itemsPerPage, setItemsPerPage] = useState(15);
 	const [sortConfig, setSortConfig] = useState<{ key: string, direction: string }>({ key: '', direction: '' });
+	const dispatch = useDispatch<AppDispatch>();
 
-	const headers = data.length > 0 ? Object.keys(data[0]) : [];
+	const tableData = useSelector(selectTableDataCharacters);
+	const pagination = useSelector(selectCharactersPagination);
+	const loading = useSelector(selectCharactersLoading);
+	const error = useSelector(selectCharactersError);
+
+	// console.log("tableData", tableData);
+	// console.log("pagination", pagination);
+	// console.log("loading", loading);
+	// console.log("error", error);
+
+	const headers = tableData.length > 0 ? Object.keys(tableData[0]) : [];
 
 	const indexOfLastItem = currentPage * itemsPerPage;
 	const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -35,7 +39,7 @@ const Table: React.FC<TableProps> = ({ data, info }) => {
 		setSortConfig({ key, direction });
 	};
 
-	const sortedData = [...data.slice(indexOfFirstItem, indexOfLastItem)].sort((a, b) => {
+	const sortedData = [...tableData.slice(indexOfFirstItem, indexOfLastItem)].sort((a, b) => {
 		if (sortConfig.direction === 'ascending') {
 			return a[sortConfig.key] > b[sortConfig.key] ? 1 : -1;
 		}
@@ -44,6 +48,18 @@ const Table: React.FC<TableProps> = ({ data, info }) => {
 		}
 		return 0;
 	});
+
+	useEffect(() => {
+		dispatch(fetchCharacter());
+	}, [dispatch]);
+
+	if (loading) {
+		return <div>Loading...</div>;
+	}
+
+	if (error) {
+		return <div>Error: {error}</div>;
+	}
 
 	return (
 		<div className="table-container">
@@ -74,14 +90,14 @@ const Table: React.FC<TableProps> = ({ data, info }) => {
 			<div className="pagination">
 				<div>
 					{
-						info?.count
-							? `${(indexOfFirstItem + 1)} - ${indexOfLastItem} of ${info?.count}`
+						pagination?.count > 1
+							? `${(indexOfFirstItem + 1)} - ${indexOfLastItem} of ${pagination?.count}`
 							: null
 					}
 				</div>
 				<div>
 					{
-						info?.pages
+						pagination?.totalPages > 1
 							? <>
 								<span>
 									Rows per page:
@@ -99,10 +115,10 @@ const Table: React.FC<TableProps> = ({ data, info }) => {
 									disabled={currentPage === 1}>
 									{'<'}
 								</button>
-								<span>{`${currentPage} / ${info?.pages}`}</span>
+								<span>{`${currentPage} / ${pagination?.totalPages}`}</span>
 								<button
 									onClick={() => setCurrentPage(currentPage + 1)}
-									disabled={currentPage >= info?.pages}>
+									disabled={currentPage >= pagination?.totalPages}>
 									{'>'}
 								</button>
 							</>
@@ -114,4 +130,4 @@ const Table: React.FC<TableProps> = ({ data, info }) => {
 	);
 };
 
-export default Table;
+export default CharacterTable;

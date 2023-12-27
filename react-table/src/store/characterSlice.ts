@@ -33,6 +33,7 @@ interface TableState {
     pagination: {
         currentPage: number;
         totalPages: number;
+        count: number;
         nextPage: string | null;
         prevPage: string | null;
     };
@@ -45,6 +46,7 @@ const initialState: TableState = {
     pagination: {
         currentPage: 1,
         totalPages: 1,
+        count: 1,
         nextPage: null,
         prevPage: null,
     },
@@ -57,7 +59,7 @@ export const fetchCharacter = createAsyncThunk('locations/fetchCharacter', async
     return response.data;
 });
 
-const сharacterSlice = createSlice({
+const characterSlice = createSlice({
     name: 'character',
     initialState,
     reducers: {},
@@ -73,6 +75,7 @@ const сharacterSlice = createSlice({
                 state.pagination.totalPages = action.payload.info.pages;
                 state.pagination.nextPage = action.payload.info.next;
                 state.pagination.prevPage = action.payload.info.prev;
+                state.pagination.count = action.payload.info.count;
                 state.loading = false;
             })
             .addCase(fetchCharacter.rejected, (state, action) => {
@@ -82,9 +85,9 @@ const сharacterSlice = createSlice({
     },
 });
 
-export const selectTableDataLocations = (state: RootState) => state.locations.tableData;
-export const selectLocationsPagination = (state: RootState) => state.locations.pagination;
-export const selectLocationsLoading = (state: RootState) => state.locations.loading;
-export const selectLocationsError = (state: RootState) => state.locations.error;
+export const selectTableDataCharacters = (state: RootState) => state.characters.tableData;
+export const selectCharactersPagination = (state: RootState) => state.characters.pagination;
+export const selectCharactersLoading = (state: RootState) => state.characters.loading;
+export const selectCharactersError = (state: RootState) => state.characters.error;
 
-export default сharacterSlice.reducer;
+export default characterSlice.reducer;

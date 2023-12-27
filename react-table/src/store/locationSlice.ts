@@ -29,6 +29,7 @@ interface TableState {
     pagination: {
         currentPage: number;
         totalPages: number;
+        count: number;
         nextPage: string | null;
         prevPage: string | null;
     };
@@ -39,8 +40,9 @@ interface TableState {
 const initialState: TableState = {
     tableData: [],
     pagination: {
-        currentPage: 1,
+        currentPage: -1,
         totalPages: 1,
+        count: 1,
         nextPage: null,
         prevPage: null,
     },
@@ -53,10 +55,31 @@ export const fetchLocations = createAsyncThunk('locations/fetchLocations', async
     return response.data;
 });
 
+export const fetchNextPage = createAsyncThunk(
+    'locations/fetchNextPage',
+    async (nextPageUrl: string) => {
+        const response = await axios.get(nextPageUrl);
+        return response.data;
+    }
+);
+
+export const fetchPrevPage = createAsyncThunk(
+    'locations/fetchPrevPage',
+    async (prevPageUrl: string) => {
+        const response = await axios.get(prevPageUrl);
+        return response.data;
+    }
+);
+
 const locationSlice = createSlice({
     name: 'locations',
     initialState,
-    reducers: {},
+    reducers: {
+        setPage: (state, action: PayloadAction<number>) => {
+            state.pagination.currentPage = action.payload;
+        }
+    },
+
     extraReducers: (builder) => {
         builder
             .addCase(fetchLocations.pending, (state) => {
@@ -64,17 +87,49 @@ const locationSlice = createSlice({
                 state.error = null;
             })
             .addCase(fetchLocations.fulfilled, (state, action: PayloadAction<ApiResponse>) => {
-                state.tableData = [...state.tableData, ...action.payload.results];
+                const newData = action.payload.results;
+                const existingData = state.tableData;
+
+                const isDataExist = existingData.some(item => newData.some(item2 => item2.id === item.id));
+
+                if (!isDataExist) {
+                    state.tableData = [...state.tableData, ...newData];
+                }
                 state.pagination.currentPage += 1;
                 state.pagination.totalPages = action.payload.info.pages;
                 state.pagination.nextPage = action.payload.info.next;
                 state.pagination.prevPage = action.payload.info.prev;
+                state.pagination.count = action.payload.info.count;
                 state.loading = false;
             })
             .addCase(fetchLocations.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch data';
             });
+
+        builder.addCase(fetchNextPage.fulfilled, (state, action) => {
+            state.tableData = [...state.tableData, ...action.payload.results];
+            state.pagination.totalPages = action.payload.info.pages;
+            state.pagination.nextPage = action.payload.info.next;
+            state.pagination.prevPage = action.payload.info.prev;
+            state.loading = false;
+        });
+        builder.addCase(fetchNextPage.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.error.message || 'Failed to fetch data';
+        });
+
+        builder.addCase(fetchPrevPage.fulfilled, (state, action) => {
+            state.tableData = [...state.tableData, ...action.payload.results];
+            state.pagination.totalPages = action.payload.info.pages;
+            state.pagination.nextPage = action.payload.info.next;
+            state.pagination.prevPage = action.payload.info.prev;
+            state.loading = false;
+        });
+        builder.addCase(fetchPrevPage.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.error.message || 'Failed to fetch data';
+        });
     },
 });
 
@@ -82,5 +137,7 @@ export const selectTableDataLocations = (state: RootState) => state.locations.ta
 export const selectLocationsPagination = (state: RootState) => state.locations.pagination;
 export const selectLocationsLoading = (state: RootState) => state.locations.loading;
 export const selectLocationsError = (state: RootState) => state.locations.error;
+
+export const { setPage } = locationSlice.actions;
 
 export default locationSlice.reducer;
