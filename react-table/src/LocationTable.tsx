@@ -9,11 +9,11 @@ import {
 	selectLocationsLoading,
 	selectLocationsPagination,
 	selectTableDataLocations,
-	setPage,
 } from './store/locationSlice';
 import { AppDispatch } from './store';
 
 const LocationTable: React.FC = () => {
+	const [currentPage, setCurrentPage] = useState(1);
 	const [itemsPerPage, setItemsPerPage] = useState(15);
 	const [sortConfig, setSortConfig] = useState<{ key: string, direction: string }>({ key: '', direction: '' });
 	const dispatch = useDispatch<AppDispatch>();
@@ -21,13 +21,9 @@ const LocationTable: React.FC = () => {
 	const pagination = useSelector(selectLocationsPagination);
 	const loading = useSelector(selectLocationsLoading);
 	const error = useSelector(selectLocationsError);
-	console.log("tableData", tableData);
-	console.log("pagination", pagination);
-	console.log("loading", loading);
-	console.log("error", error);
 	const headers = tableData.length > 0 ? Object.keys(tableData[0]) : [];
 
-	const indexOfLastItem = pagination.currentPage * itemsPerPage;
+	const indexOfLastItem = currentPage * itemsPerPage;
 	const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
 	const handleSort = (key: string) => {
@@ -50,17 +46,18 @@ const LocationTable: React.FC = () => {
 
 	useEffect(() => {
 		dispatch(fetchLocations());
-	}, []);
+		setCurrentPage(1)
+	}, [dispatch,itemsPerPage]);
 
 	const handleNextPage = () => {
-		dispatch(setPage(pagination.currentPage + 1));
-		if (pagination.nextPage && sortedData.length !== itemsPerPage) {
+		setCurrentPage(currentPage + 1)
+		if (pagination.nextPage) {
 			dispatch(fetchNextPage(pagination.nextPage));
 		}
 	};
 
 	const handlePrevPage = () => {
-		dispatch(setPage(pagination.currentPage - 1));
+		setCurrentPage(currentPage - 1)
 		if (pagination.prevPage) {
 			dispatch(fetchPrevPage(pagination.prevPage));
 		}
@@ -104,7 +101,9 @@ const LocationTable: React.FC = () => {
 				<div>
 					{
 						pagination?.count > 1
-							? `${(indexOfFirstItem + 1)} - ${indexOfLastItem} of ${pagination?.count}`
+							? `${(indexOfFirstItem + 1)} - ${indexOfLastItem > pagination?.count
+								? pagination?.count
+								: indexOfLastItem} of ${pagination?.count}`
 							: null
 					}
 				</div>
@@ -125,13 +124,13 @@ const LocationTable: React.FC = () => {
 								</select>
 								<button
 									onClick={handlePrevPage}
-									disabled={!pagination.prevPage}>
+									disabled={currentPage === 1}>
 									{'<'}
 								</button>
-								<span>{`${pagination.currentPage} / ${Math.ceil(pagination?.count / itemsPerPage)}`}</span>
+								<span>{`${currentPage} / ${Math.ceil(pagination?.count / itemsPerPage)}`}</span>
 								<button
 									onClick={handleNextPage}
-									disabled={!pagination.nextPage}>
+									disabled={currentPage === Math.ceil(pagination?.count / itemsPerPage)} >
 									{'>'}
 								</button>
 							</>
@@ -139,7 +138,7 @@ const LocationTable: React.FC = () => {
 					}
 				</div>
 			</div>
-		</div>
+		</div >
 	);
 };
 

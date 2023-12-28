@@ -31,7 +31,6 @@ interface ApiResponse {
 interface TableState {
     tableData: Character[];
     pagination: {
-        currentPage: number;
         totalPages: number;
         count: number;
         nextPage: string | null;
@@ -44,7 +43,6 @@ interface TableState {
 const initialState: TableState = {
     tableData: [],
     pagination: {
-        currentPage: 1,
         totalPages: 1,
         count: 1,
         nextPage: null,
@@ -54,10 +52,26 @@ const initialState: TableState = {
     error: null,
 };
 
-export const fetchCharacter = createAsyncThunk('locations/fetchCharacter', async () => {
+export const fetchCharacter = createAsyncThunk('character/fetchCharacter', async () => {
     const response = await axios.get('https://rickandmortyapi.com/api/character');
     return response.data;
 });
+
+export const fetchNextPage = createAsyncThunk(
+	'character/fetchNextPage',
+	async (nextPageUrl: string) => {
+		const response = await axios.get(nextPageUrl);
+		return response.data;
+	}
+);
+
+export const fetchPrevPage = createAsyncThunk(
+	'character/fetchPrevPage',
+	async (prevPageUrl: string) => {
+		const response = await axios.get(prevPageUrl);
+		return response.data;
+	}
+);
 
 const characterSlice = createSlice({
     name: 'character',
@@ -70,8 +84,12 @@ const characterSlice = createSlice({
                 state.error = null;
             })
             .addCase(fetchCharacter.fulfilled, (state, action: PayloadAction<ApiResponse>) => {
-                state.tableData = [...state.tableData, ...action.payload.results];
-                state.pagination.currentPage += 1;
+                const newData = action.payload.results;
+				const existingData = state.tableData;
+				const isDataExist = existingData.some(item => newData.some(item2 => item2.id === item.id));
+				if (!isDataExist) {
+					state.tableData = [...state.tableData, ...newData];
+				}
                 state.pagination.totalPages = action.payload.info.pages;
                 state.pagination.nextPage = action.payload.info.next;
                 state.pagination.prevPage = action.payload.info.prev;
@@ -79,6 +97,44 @@ const characterSlice = createSlice({
                 state.loading = false;
             })
             .addCase(fetchCharacter.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message || 'Failed to fetch data';
+            });
+
+            builder.addCase(fetchNextPage.fulfilled, (state, action) => {
+                const newData = action.payload.results;
+                const existingData = state.tableData;
+    
+                const isDataExist = existingData.some(item => newData.some((item2: Character) => item2.id === item.id));
+    
+                if (!isDataExist) {
+                    state.tableData = [...state.tableData, ...newData];
+                }
+                state.pagination.totalPages = action.payload.info.pages;
+                state.pagination.nextPage = action.payload.info.next;
+                state.pagination.prevPage = action.payload.info.prev;
+                state.loading = false;
+            });
+            builder.addCase(fetchNextPage.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message || 'Failed to fetch data';
+            });
+    
+            builder.addCase(fetchPrevPage.fulfilled, (state, action) => {
+                const newData = action.payload.results;
+                const existingData = state.tableData;
+    
+                const isDataExist = existingData.some(item => newData.some((item2: Character) => item2.id === item.id));
+    
+                if (!isDataExist) {
+                    state.tableData = [...state.tableData, ...newData];
+                }
+                state.pagination.totalPages = action.payload.info.pages;
+                state.pagination.nextPage = action.payload.info.next;
+                state.pagination.prevPage = action.payload.info.prev;
+                state.loading = false;
+            });
+            builder.addCase(fetchPrevPage.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to fetch data';
             });

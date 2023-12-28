@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from './store';
 import {
 	fetchCharacter,
+	fetchNextPage,
+	fetchPrevPage,
 	selectCharactersError,
 	selectCharactersLoading,
 	selectCharactersPagination,
@@ -15,17 +17,10 @@ const CharacterTable: React.FC = () => {
 	const [itemsPerPage, setItemsPerPage] = useState(15);
 	const [sortConfig, setSortConfig] = useState<{ key: string, direction: string }>({ key: '', direction: '' });
 	const dispatch = useDispatch<AppDispatch>();
-
 	const tableData = useSelector(selectTableDataCharacters);
 	const pagination = useSelector(selectCharactersPagination);
 	const loading = useSelector(selectCharactersLoading);
 	const error = useSelector(selectCharactersError);
-
-	// console.log("tableData", tableData);
-	// console.log("pagination", pagination);
-	// console.log("loading", loading);
-	// console.log("error", error);
-
 	const headers = tableData.length > 0 ? Object.keys(tableData[0]) : [];
 
 	const indexOfLastItem = currentPage * itemsPerPage;
@@ -51,7 +46,22 @@ const CharacterTable: React.FC = () => {
 
 	useEffect(() => {
 		dispatch(fetchCharacter());
-	}, [dispatch]);
+		setCurrentPage(1)
+	}, [dispatch,itemsPerPage]);
+
+	const handleNextPage = () => {
+		setCurrentPage(currentPage + 1)
+		if (pagination.nextPage) {
+			dispatch(fetchNextPage(pagination.nextPage));
+		}
+	};
+
+	const handlePrevPage = () => {
+		setCurrentPage(currentPage - 1)
+		if (pagination.prevPage) {
+			dispatch(fetchPrevPage(pagination.prevPage));
+		}
+	};
 
 	if (loading) {
 		return <div>Loading...</div>;
@@ -91,7 +101,9 @@ const CharacterTable: React.FC = () => {
 				<div>
 					{
 						pagination?.count > 1
-							? `${(indexOfFirstItem + 1)} - ${indexOfLastItem} of ${pagination?.count}`
+							? `${(indexOfFirstItem + 1)} - ${indexOfLastItem > pagination?.count
+								? pagination?.count
+								: indexOfLastItem} of ${pagination?.count}`
 							: null
 					}
 				</div>
@@ -111,14 +123,14 @@ const CharacterTable: React.FC = () => {
 									<option value={20}>20</option>
 								</select>
 								<button
-									onClick={() => setCurrentPage(currentPage - 1)}
+									onClick={handlePrevPage}
 									disabled={currentPage === 1}>
 									{'<'}
 								</button>
-								<span>{`${currentPage} / ${pagination?.totalPages}`}</span>
+								<span>{`${currentPage} / ${Math.ceil(pagination?.count / itemsPerPage)}`}</span>
 								<button
-									onClick={() => setCurrentPage(currentPage + 1)}
-									disabled={currentPage >= pagination?.totalPages}>
+									onClick={handleNextPage}
+									disabled={currentPage === Math.ceil(pagination?.count / itemsPerPage)}>
 									{'>'}
 								</button>
 							</>
