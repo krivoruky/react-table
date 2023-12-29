@@ -58,19 +58,19 @@ export const fetchCharacter = createAsyncThunk('character/fetchCharacter', async
 });
 
 export const fetchNextPage = createAsyncThunk(
-	'character/fetchNextPage',
-	async (nextPageUrl: string) => {
-		const response = await axios.get(nextPageUrl);
-		return response.data;
-	}
+    'character/fetchNextPage',
+    async (nextPageUrl: string) => {
+        const response = await axios.get(nextPageUrl);
+        return response.data;
+    }
 );
 
 export const fetchPrevPage = createAsyncThunk(
-	'character/fetchPrevPage',
-	async (prevPageUrl: string) => {
-		const response = await axios.get(prevPageUrl);
-		return response.data;
-	}
+    'character/fetchPrevPage',
+    async (prevPageUrl: string) => {
+        const response = await axios.get(prevPageUrl);
+        return response.data;
+    }
 );
 
 const characterSlice = createSlice({
@@ -85,11 +85,11 @@ const characterSlice = createSlice({
             })
             .addCase(fetchCharacter.fulfilled, (state, action: PayloadAction<ApiResponse>) => {
                 const newData = action.payload.results;
-				const existingData = state.tableData;
-				const isDataExist = existingData.some(item => newData.some(item2 => item2.id === item.id));
-				if (!isDataExist) {
-					state.tableData = [...state.tableData, ...newData];
-				}
+                const existingData = state.tableData;
+                const isDataExist = existingData.some(item => newData.some(item2 => item2.id === item.id));
+                if (!isDataExist) {
+                    state.tableData = [...state.tableData, ...newData];
+                }
                 state.pagination.totalPages = action.payload.info.pages;
                 state.pagination.nextPage = action.payload.info.next;
                 state.pagination.prevPage = action.payload.info.prev;
@@ -101,43 +101,43 @@ const characterSlice = createSlice({
                 state.error = action.error.message || 'Failed to fetch data';
             });
 
-            builder.addCase(fetchNextPage.fulfilled, (state, action) => {
-                const newData = action.payload.results;
-                const existingData = state.tableData;
-    
-                const isDataExist = existingData.some(item => newData.some((item2: Character) => item2.id === item.id));
-    
-                if (!isDataExist) {
-                    state.tableData = [...state.tableData, ...newData];
-                }
-                state.pagination.totalPages = action.payload.info.pages;
-                state.pagination.nextPage = action.payload.info.next;
-                state.pagination.prevPage = action.payload.info.prev;
-                state.loading = false;
-            });
-            builder.addCase(fetchNextPage.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.error.message || 'Failed to fetch data';
-            });
-    
-            builder.addCase(fetchPrevPage.fulfilled, (state, action) => {
-                const newData = action.payload.results;
-                const existingData = state.tableData;
-    
-                const isDataExist = existingData.some(item => newData.some((item2: Character) => item2.id === item.id));
-    
-                if (!isDataExist) {
-                    state.tableData = [...state.tableData, ...newData];
-                }
-                state.pagination.totalPages = action.payload.info.pages;
-                state.pagination.nextPage = action.payload.info.next;
-                state.pagination.prevPage = action.payload.info.prev;
-                state.loading = false;
-            });
-            builder.addCase(fetchPrevPage.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.error.message || 'Failed to fetch data';
-            });
+        builder.addCase(fetchNextPage.fulfilled, (state, action) => {
+            const newData = action.payload.results;
+            const existingData = state.tableData;
+
+            const isDataExist = existingData.some(item => newData.some((item2: Character) => item2.id === item.id));
+
+            if (!isDataExist) {
+                state.tableData = [...state.tableData, ...newData];
+            }
+            state.pagination.totalPages = action.payload.info.pages;
+            state.pagination.nextPage = action.payload.info.next;
+            state.pagination.prevPage = action.payload.info.prev;
+            state.loading = false;
+        });
+        builder.addCase(fetchNextPage.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.error.message || 'Failed to fetch data';
+        });
+
+        builder.addCase(fetchPrevPage.fulfilled, (state, action) => {
+            const newData = action.payload.results;
+            const existingData = state.tableData;
+
+            const isDataExist = existingData.some(item => newData.some((item2: Character) => item2.id === item.id));
+
+            if (!isDataExist) {
+                state.tableData = [...state.tableData, ...newData];
+            }
+            state.pagination.totalPages = action.payload.info.pages;
+            state.pagination.nextPage = action.payload.info.next;
+            state.pagination.prevPage = action.payload.info.prev;
+            state.loading = false;
+        });
+        builder.addCase(fetchPrevPage.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.error.message || 'Failed to fetch data';
+        });
     },
 });
 

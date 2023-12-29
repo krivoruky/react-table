@@ -1,3 +1,36 @@
+.table-container__inputs {
+	background-color: var(--header);
+}
+
+.table-container__inputs input {
+	font-family: 'Inter', sans-serif;
+	font-size: 14px;
+	font-weight: 400;
+	line-height: 20px;
+	text-align: left;
+	margin-left: 20px;
+	margin-bottom: 10px;
+}
+
+.table-container__inputs input[type="filter"] {
+	width: 100px;
+	height: 32px;
+	border-radius: 6px;
+	padding: 6px, 12px, 6px, 12px;
+	border: 1px solid var(--border);
+	padding-left: 5px;
+}
+
+.table-container__inputs input[type="search"] {
+	background: url(./assets/Search.png) no-repeat;
+	background-position: left 16px top 50%;
+	padding-left: 40px;
+	width: 320px;
+	height: 32px;
+	border-radius: 6px;
+	border: 1px solid var(--border);
+}
+
 table {
 	table-layout: fixed;
 	border-collapse: collapse;
@@ -20,6 +53,7 @@ td {
 	height: 64px;
 	padding: 0 20px;
 }
+
 tr:nth-child(2n-1) {
 	background: var(--gray);
 }
@@ -46,7 +80,21 @@ th {
 	justify-content: space-between;
 }
 
-.pagination select{
+.pagination button {
+	height: 20px;
+	width: 24px;
+	border-radius: 6px;
+	margin: 2px 4px;
+	box-shadow: none;
+	border: 1px solid;
+}
+
+.pagination select {
+	border: 0px;
+	outline: 0px;
+}
+
+.pagination select {
 	margin-right: 20px;
 }
 

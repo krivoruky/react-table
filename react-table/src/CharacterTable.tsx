@@ -13,9 +13,14 @@ import {
 } from './store/characterSlice';
 
 const CharacterTable: React.FC = () => {
+	const [filterOption, setFilterOption] = useState('');
+	const [searchTerm, setSearchTerm] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
 	const [itemsPerPage, setItemsPerPage] = useState(15);
-	const [sortConfig, setSortConfig] = useState<{ key: string, direction: string }>({ key: '', direction: '' });
+	const [sortConfig, setSortConfig] = useState<{
+		key: string;
+		direction: string;
+	}>({ key: '', direction: '' });
 	const dispatch = useDispatch<AppDispatch>();
 	const tableData = useSelector(selectTableDataCharacters);
 	const pagination = useSelector(selectCharactersPagination);
@@ -34,7 +39,9 @@ const CharacterTable: React.FC = () => {
 		setSortConfig({ key, direction });
 	};
 
-	const sortedData = [...tableData.slice(indexOfFirstItem, indexOfLastItem)].sort((a, b) => {
+	const sortedData = [
+		...tableData.slice(indexOfFirstItem, indexOfLastItem),
+	].sort((a, b) => {
 		if (sortConfig.direction === 'ascending') {
 			return a[sortConfig.key] > b[sortConfig.key] ? 1 : -1;
 		}
@@ -46,22 +53,54 @@ const CharacterTable: React.FC = () => {
 
 	useEffect(() => {
 		dispatch(fetchCharacter());
-		setCurrentPage(1)
-	}, [dispatch,itemsPerPage]);
+		setCurrentPage(1);
+	}, [dispatch, itemsPerPage]);
 
 	const handleNextPage = () => {
-		setCurrentPage(currentPage + 1)
+		setCurrentPage(currentPage + 1);
 		if (pagination.nextPage) {
 			dispatch(fetchNextPage(pagination.nextPage));
 		}
 	};
 
 	const handlePrevPage = () => {
-		setCurrentPage(currentPage - 1)
+		setCurrentPage(currentPage - 1);
 		if (pagination.prevPage) {
 			dispatch(fetchPrevPage(pagination.prevPage));
 		}
 	};
+
+	const handleOptionSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+		setFilterOption(event.target.value);
+	};
+
+	const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		setSearchTerm(event.target.value);
+	};
+
+	let filteredData = sortedData;
+	if (filterOption) {
+		filteredData = filteredData?.filter(
+			(item: any) =>
+				typeof item[filterOption] === 'string' &&
+				item[filterOption as keyof Location]
+					.toLowerCase()
+					.includes(searchTerm.toLowerCase())
+		);
+	} else {
+		filteredData = filteredData?.filter(
+			(item: any) => {
+				for (const key in item) {
+					if (typeof item[key] === 'string' &&
+						item[key as keyof Location]
+							.toLowerCase()
+							.includes(searchTerm?.toLowerCase())) {
+						return true;
+					}
+				}
+				return false;
+			});
+	}
 
 	if (loading) {
 		return <div>Loading...</div>;
@@ -72,48 +111,65 @@ const CharacterTable: React.FC = () => {
 	}
 
 	return (
-		<div className="table-container">
-			<table>
-				<thead>
-					<tr>
-						{headers.map((header) => (
-							<th key={header} onClick={() => handleSort(header)}>
-								{header}
-							</th>
-						))}
-					</tr>
-				</thead>
-				<tbody>
-					{sortedData.map((item, index) => (
-						<tr key={index}>
+		<>
+			<div className='table-container__inputs'>
+				<input
+					type='filter'
+					list='filterOptions'
+					placeholder='Filter by...'
+					value={filterOption}
+					onChange={handleOptionSelect}
+				/>
+				<datalist id='filterOptions'>
+					{headers.map((header, index) => (
+						<option key={index} value={header} />
+					))}
+				</datalist>
+				<input
+					type='search'
+					placeholder='Search...'
+					value={searchTerm}
+					onChange={handleSearchChange}
+				/>
+			</div>
+			<div className='table-container'>
+				<table>
+					<thead>
+						<tr>
 							{headers.map((header) => (
-								<td key={header}>
-									{typeof item[header] === 'object'
-										? JSON.stringify(item[header])
-										: item[header]}
-								</td>
+								<th key={header} onClick={() => handleSort(header)}>
+									{header}
+								</th>
 							))}
 						</tr>
-					))}
-				</tbody>
-			</table>
-			<div className="pagination">
-				<div>
-					{
-						pagination?.count > 1
-							? `${(indexOfFirstItem + 1)} - ${indexOfLastItem > pagination?.count
+					</thead>
+					<tbody>
+						{filteredData.map((item, index) => (
+							<tr key={index}>
+								{headers.map((header) => (
+									<td key={header}>
+										{typeof item[header] === 'object'
+											? JSON.stringify(item[header])
+											: item[header]}
+									</td>
+								))}
+							</tr>
+						))}
+					</tbody>
+				</table>
+				<div className='pagination'>
+					<div>
+						{pagination?.count > 1
+							? `${indexOfFirstItem + 1} - ${indexOfLastItem > pagination?.count
 								? pagination?.count
-								: indexOfLastItem} of ${pagination?.count}`
-							: null
-					}
-				</div>
-				<div>
-					{
-						pagination?.totalPages > 1
-							? <>
-								<span>
-									Rows per page:
-								</span>
+								: indexOfLastItem
+							} of ${pagination?.count}`
+							: null}
+					</div>
+					<div>
+						{pagination?.totalPages > 1 ? (
+							<>
+								<span>Rows per page:</span>
 								<select
 									value={itemsPerPage}
 									onChange={(e) => setItemsPerPage(parseInt(e.target.value, 10))}
@@ -122,23 +178,26 @@ const CharacterTable: React.FC = () => {
 									<option value={15}>15</option>
 									<option value={20}>20</option>
 								</select>
-								<button
-									onClick={handlePrevPage}
-									disabled={currentPage === 1}>
+								<button onClick={handlePrevPage} disabled={currentPage === 1}>
 									{'<'}
 								</button>
-								<span>{`${currentPage} / ${Math.ceil(pagination?.count / itemsPerPage)}`}</span>
+								<span>{`${currentPage} / ${Math.ceil(
+									pagination?.count / itemsPerPage
+								)}`}</span>
 								<button
 									onClick={handleNextPage}
-									disabled={currentPage === Math.ceil(pagination?.count / itemsPerPage)}>
+									disabled={
+										currentPage === Math.ceil(pagination?.count / itemsPerPage)
+									}
+								>
 									{'>'}
 								</button>
 							</>
-							: null
-					}
+						) : null}
+					</div>
 				</div>
 			</div>
-		</div>
+		</>
 	);
 };
 

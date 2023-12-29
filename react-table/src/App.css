@@ -5,6 +5,7 @@
 	--gray700: #464F60;
 	--gray900: #171C26;
 	--green0: #E1FCEF;
+	--border: #68718229
 }
 
 * {
@@ -21,4 +22,18 @@
 .container header {
 	background-color: var(--header);
 	height: 104px;
+}
+
+header select {
+	width: 150px;
+	height: 32px;
+	border-radius: 6px;
+	border: 1px solid var(--border);
+	padding-left: 5px;
+	margin-left: 17px;
+	margin-top: 35px;
+	font-family: 'Inter', sans-serif;
+	font-size: 14px;
+	font-weight: 400;
+	line-height: 20px;
 }
